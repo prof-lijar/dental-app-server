@@ -1,50 +1,66 @@
 // Controllers - Business logic layer
 // Handle business logic and prepare data for API responses
 
-import { ExampleModel } from '@/models';
+import { ExampleModel } from "@/models";
+import { ExampleRepository } from "@/repositories/example.repository";
 
 export class ExampleController {
-  // Example business logic method
+  private static repository = new ExampleRepository();
+
+  /**
+   * Get example by ID
+   */
   static async getExample(id: string): Promise<ExampleModel | null> {
-    // Add your business logic here
-    // This is where you would typically interact with services, repositories, etc.
-    
-    // Example return
-    return {
-      id,
-      name: 'Example',
-      description: 'This is an example',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    return await this.repository.findById(id);
   }
 
-  static async createExample(data: Omit<ExampleModel, 'id' | 'createdAt' | 'updatedAt'>): Promise<ExampleModel> {
-    // Add your business logic here
-    
-    return {
-      id: Math.random().toString(36).substring(7),
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  /**
+   * Get all examples
+   */
+  static async getAllExamples(): Promise<ExampleModel[]> {
+    return await this.repository.findAll();
   }
 
-  static async updateExample(id: string, data: Partial<ExampleModel>): Promise<ExampleModel | null> {
-    // Add your business logic here
-    
-    return {
-      id,
-      name: data.name || 'Updated Example',
-      description: data.description,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  /**
+   * Create new example
+   */
+  static async createExample(
+    data: Omit<ExampleModel, "id" | "createdAt" | "updatedAt">
+  ): Promise<ExampleModel> {
+    return await this.repository.create(data as Partial<ExampleModel>);
   }
 
+  /**
+   * Update example
+   */
+  static async updateExample(
+    id: string,
+    data: Partial<ExampleModel>
+  ): Promise<ExampleModel | null> {
+    return await this.repository.update(id, data);
+  }
+
+  /**
+   * Delete example
+   */
   static async deleteExample(id: string): Promise<boolean> {
-    // Add your business logic here
-    return true;
+    return await this.repository.delete(id);
+  }
+
+  /**
+   * Find example by name (custom repository method example)
+   */
+  static async findByName(name: string): Promise<ExampleModel | null> {
+    return await this.repository.findByName(name);
+  }
+
+  /**
+   * Get examples with pagination
+   */
+  static async getExamplesWithPagination(
+    page: number = 1,
+    pageSize: number = 10
+  ) {
+    return await this.repository.findWithPagination(page, pageSize);
   }
 }
-
