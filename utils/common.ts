@@ -59,3 +59,9 @@ export function verifyPassword(password: string, hashPassword: string): boolean 
     // Verify password against hash
     return bcrypt.compareSync(password, hashPassword);
 }
+
+export function isPasswordStrong(password: string): boolean {
+    //check if password is strong (at least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(password);
+}

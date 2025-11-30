@@ -1,8 +1,9 @@
 import {UserRepository} from "@/repository/UserRepository";
-import { generateVerificationCode } from "@/utils/common";
+import { generateAccessToken, generateRefreshToken, generateSessionId, generateVerificationCode, verifyPassword } from "@/utils/common";
 import { EmailService } from "@/service/EmailService";
 import { VerificationRepository } from "@/repository/VerificationRepository";
 import { VerificationCodeType } from "@/dto/Enum";
+import { LoggedInUser } from "@/dto/User";
 
 export class AuthService{
     private static userRepository = new UserRepository();
@@ -98,4 +99,35 @@ export class AuthService{
         
     }
 
+    static async login(email: string, password: string): Promise<{ success: boolean; message: string; user: LoggedInUser | null }>{
+        //check if user exists
+        const user = await this.userRepository.findByEmail(email);
+        if (!user) {
+            return { success: false, message: "User not found", user: null };
+        }
+        //check if password is correct
+        if (!verifyPassword(password, user.password)) {
+            return { success: false, message: "Invalid password", user: null };
+        }
+        //generate access token and refresh token
+        const accessToken = generateAccessToken(user.id!, user.email, user.username);
+        const refreshToken = generateRefreshToken(user.id!, user.email, user.username);
+        const sessionId = generateSessionId();
+
+        //update user with access token and refresh token
+        await this.userRepository.update(user.id!, { 
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            session_id: sessionId,
+            last_login: new Date() });
+
+        return { success: true, message: "Login successful", user: {
+            userId: user.id!,
+            email: user.email,
+            username: user.username,
+            accessToken: accessToken,
+            sessionId: sessionId,
+            refreshToken: refreshToken,
+        } };
+    }
 }

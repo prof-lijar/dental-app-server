@@ -1,7 +1,7 @@
 import { CreateUserDto } from "@/dto/User";
 import {Users, UserInfo} from "@/models/Users";
 import {UserRepository} from "@/repository/UserRepository";
-import { generatePasswordHash } from "@/utils/common";
+import { generatePasswordHash, isPasswordStrong } from "@/utils/common";
 
 export class UserService{
     private static repository = new UserRepository();
@@ -12,6 +12,8 @@ export class UserService{
 
     //create user
     static async createUser(createUserDto: CreateUserDto): Promise<{ success: boolean; message: string; user: Users | null }>{
+
+        //TODO: check if email is verified
 
         //check if user already exists
         const existingUser = await this.repository.findByEmail(createUserDto.email);
@@ -26,7 +28,7 @@ export class UserService{
         }
 
         //check if password is strong
-        if (!this.isPasswordStrong(createUserDto.password)) {
+        if (!isPasswordStrong(createUserDto.password)) {
             return { success: false, message: "Password must be at least 8 characters long and contain at least 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character", user: null};
         }
 
@@ -42,9 +44,4 @@ export class UserService{
         return { success: true, message: "User created successfully", user: newUser };
     }
 
-    private static isPasswordStrong(password: string): boolean{
-        //check if password is strong (at least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character)
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        return passwordRegex.test(password);
-    }
 }

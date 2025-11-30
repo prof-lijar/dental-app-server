@@ -1,0 +1,4 @@
+ALTER TABLE users
+ALTER COLUMN access_token TYPE TEXT,
+ALTER COLUMN refresh_token TYPE TEXT,
+ALTER COLUMN session_id TYPE TEXT;

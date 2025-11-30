@@ -15,3 +15,12 @@ export type UpdateUserDto = {
     gender?: string;
     nationality?: string;
 }
+
+export type LoggedInUser = {
+    userId: string;
+    email: string;
+    username: string;
+    accessToken: string;
+    sessionId: string;
+    refreshToken: string;
+}
