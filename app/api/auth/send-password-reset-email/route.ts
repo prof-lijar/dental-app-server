@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AuthService } from "@/service/AuthService";
 
-// POST /api/auth/send-verification-email
-// Send verification email to the user
-// Request body: { email: string }
-// Response: { message: string }
-// Error: { error: string }
-
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         if (!body.email) {
             return NextResponse.json({ error: "Email is required" }, { status: 400 });
         }
-        await AuthService.sendVerificationEmail(body.email);
-        return NextResponse.json({ message: "Verification email sent" }, { status: 200 });
-    } catch (error) {   
+        const result = await AuthService.sendPasswordResetEmail(body.email);
+        if (!result.success) {
+            return NextResponse.json({ error: result.message }, { status: 400 });
+        }
+        return NextResponse.json(result, { status: 200 });
+    } catch (error) {
         console.error(error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }

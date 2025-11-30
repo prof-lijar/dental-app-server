@@ -1,15 +1,15 @@
 // Email Templates
 
 export const emailTemplates = {
-  verificationCode: (code: string, appName: string = 'Dental App') => ({
-    subject: `${appName} - Verify Your Email`,
+  verificationCode: (code: string, appName: string = 'Daily Dental') => ({
+    subject: `${appName} - 이메일 인증`,
     html: `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Email Verification</title>
+        <title>이메일 인증</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7fa;">
         <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -29,10 +29,10 @@ export const emailTemplates = {
                 <tr>
                   <td style="padding: 40px;">
                     <h2 style="margin: 0 0 20px; color: #1e293b; font-size: 24px; font-weight: 600; text-align: center;">
-                      Verify Your Email Address
+                      이메일 주소 인증
                     </h2>
                     <p style="margin: 0 0 30px; color: #64748b; font-size: 16px; line-height: 1.6; text-align: center;">
-                      Thank you for registering! Please use the verification code below to complete your registration.
+                      회원가입해 주셔서 감사합니다! 아래 인증 코드를 입력하여 가입을 완료해 주세요.
                     </p>
                     
                     <!-- Verification Code Box -->
@@ -45,10 +45,10 @@ export const emailTemplates = {
                     </div>
                     
                     <p style="margin: 30px 0 0; color: #94a3b8; font-size: 14px; text-align: center;">
-                      This code will expire in <strong>10 minutes</strong>.
+                      이 코드는 <strong>10분</strong> 후에 만료됩니다.
                     </p>
                     <p style="margin: 10px 0 0; color: #94a3b8; font-size: 14px; text-align: center;">
-                      If you didn't request this code, please ignore this email.
+                      본인이 요청하지 않은 경우, 이 이메일을 무시해 주세요.
                     </p>
                   </td>
                 </tr>
@@ -69,27 +69,27 @@ export const emailTemplates = {
       </html>
     `,
     text: `
-${appName} - Email Verification
+${appName} - 이메일 인증
 
-Your verification code is: ${code}
+인증 코드: ${code}
 
-This code will expire in 10 minutes.
+이 코드는 10분 후에 만료됩니다.
 
-If you didn't request this code, please ignore this email.
+본인이 요청하지 않은 경우, 이 이메일을 무시해 주세요.
 
 © ${new Date().getFullYear()} ${appName}. All rights reserved.
     `,
   }),
 
-  resetPassword: (code: string, appName: string = 'Dental App') => ({
-    subject: `${appName} - Reset Your Password`,
+  resetPassword: (code: string, appName: string = 'Daily Dental') => ({
+    subject: `${appName} - 비밀번호 재설정`,
     html: `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Password Reset</title>
+        <title>비밀번호 재설정</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7fa;">
         <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -109,10 +109,10 @@ If you didn't request this code, please ignore this email.
                 <tr>
                   <td style="padding: 40px;">
                     <h2 style="margin: 0 0 20px; color: #1e293b; font-size: 24px; font-weight: 600; text-align: center;">
-                      Reset Your Password
+                      비밀번호 재설정
                     </h2>
                     <p style="margin: 0 0 30px; color: #64748b; font-size: 16px; line-height: 1.6; text-align: center;">
-                      We received a request to reset your password. Use the code below to proceed with resetting your password.
+                      비밀번호 재설정 요청을 받았습니다. 아래 코드를 입력하여 비밀번호를 재설정해 주세요.
                     </p>
                     
                     <!-- Reset Code Box -->
@@ -125,16 +125,16 @@ If you didn't request this code, please ignore this email.
                     </div>
                     
                     <p style="margin: 30px 0 0; color: #94a3b8; font-size: 14px; text-align: center;">
-                      This code will expire in <strong>10 minutes</strong>.
+                      이 코드는 <strong>10분</strong> 후에 만료됩니다.
                     </p>
                     <p style="margin: 10px 0 0; color: #94a3b8; font-size: 14px; text-align: center;">
-                      If you didn't request a password reset, please ignore this email or contact support if you have concerns.
+                      본인이 비밀번호 재설정을 요청하지 않은 경우, 이 이메일을 무시하시거나 문의 사항이 있으시면 고객센터로 연락해 주세요.
                     </p>
                     
                     <!-- Security Notice -->
                     <div style="margin-top: 30px; padding: 15px; background-color: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
                       <p style="margin: 0; color: #92400e; font-size: 14px;">
-                        <strong>Security Tip:</strong> Never share this code with anyone. Our team will never ask you for this code.
+                        <strong>보안 안내:</strong> 이 코드를 다른 사람과 공유하지 마세요. 저희 팀은 절대로 이 코드를 요청하지 않습니다.
                       </p>
                     </div>
                   </td>
@@ -156,18 +156,17 @@ If you didn't request this code, please ignore this email.
       </html>
     `,
     text: `
-${appName} - Password Reset
+${appName} - 비밀번호 재설정
 
-Your password reset code is: ${code}
+비밀번호 재설정 코드: ${code}
 
-This code will expire in 10 minutes.
+이 코드는 10분 후에 만료됩니다.
 
-If you didn't request a password reset, please ignore this email or contact support if you have concerns.
+본인이 비밀번호 재설정을 요청하지 않은 경우, 이 이메일을 무시하시거나 문의 사항이 있으시면 고객센터로 연락해 주세요.
 
-Security Tip: Never share this code with anyone. Our team will never ask you for this code.
+보안 안내: 이 코드를 다른 사람과 공유하지 마세요. 저희 팀은 절대로 이 코드를 요청하지 않습니다.
 
 © ${new Date().getFullYear()} ${appName}. All rights reserved.
     `,
   }),
 };
-
