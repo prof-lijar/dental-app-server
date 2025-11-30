@@ -10,4 +10,10 @@ export class UserRepository extends BaseRepository<Users>{
         const result = await this.executeQuery<Users>(query, [email]);
         return result.rows[0] || null;
     }
+
+    async findByUsername(username: string): Promise<Users | null>{
+        let query = `SELECT * FROM ${this.tableName} WHERE username = $1 LIMIT 1`;
+        const result = await this.executeQuery<Users>(query, [username]);
+        return result.rows[0] || null;
+    }
 }

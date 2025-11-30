@@ -1,0 +1,1 @@
+export type VerificationCodeType = "REGISTER" | "RESET_PWD";
