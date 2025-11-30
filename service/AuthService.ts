@@ -1,5 +1,5 @@
 import {UserRepository} from "@/repository/UserRepository";
-import { generateAccessToken, generateRefreshToken, generateSessionId, generateVerificationCode, verifyPassword } from "@/utils/common";
+import { generateAccessToken, generatePasswordHash, generateRefreshToken, generateSessionId, generateVerificationCode, isPasswordStrong, verifyPassword } from "@/utils/common";
 import { EmailService } from "@/service/EmailService";
 import { VerificationRepository } from "@/repository/VerificationRepository";
 import { VerificationCodeType } from "@/dto/Enum";
@@ -130,4 +130,37 @@ export class AuthService{
             refreshToken: refreshToken,
         } };
     }
+
+    //TODO: implement logout with access token not userId
+    static async logout(userId: string): Promise<{ success: boolean; message: string }>{
+        //update user with access token and refresh token
+        await this.userRepository.update(userId, { access_token: undefined, refresh_token: undefined, session_id: undefined });
+        return { success: true, message: "Logout successful" };
+    }
+
+    //TODO: implement refresh token with access token not userId
+
+    //reset password with email
+    static async resetPassword(email: string, newPassword: string): Promise<{ success: boolean; message: string }>{
+        //check if user exists
+        const user = await this.userRepository.findByEmail(email);
+        if (!user) {
+            return { success: false, message: "User not found" };
+        }
+        
+
+        //TODO: check if email is verified
+
+        if (!isPasswordStrong(newPassword)) {
+            return { success: false, message: "Password must be at least 8 characters long and contain at least 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character" };
+        }
+
+        //hash new password
+        const hashedPassword = generatePasswordHash(newPassword);
+        //update user with new password
+        await this.userRepository.update(user.id!, { password: hashedPassword });
+        return { success: true, message: "Password reset successful" };
+
+    }
+
 }
