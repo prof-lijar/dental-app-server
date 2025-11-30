@@ -12,4 +12,3 @@ export interface ExampleModel extends BaseEntity {
   name: string;
   description?: string;
 }
-

@@ -24,3 +24,36 @@ DATABASE_URL=postgresql://postgres.abcdefghijklmnop:your-password-here@aws-0-us-
 ```
 
 **Note:** The `.env.local` file is gitignored and will not be committed to version control.
+
+## Email Configuration (Google SMTP)
+
+Add the following email environment variables to your `.env.local` file:
+
+```bash
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+```
+
+### How to get your Google App Password:
+
+1. Go to your Google Account: https://myaccount.google.com/
+2. Navigate to **Security** → **2-Step Verification** (must be enabled)
+3. At the bottom, click on **App passwords**
+4. Select app: **Mail** and device: **Other (Custom name)**
+5. Enter a name like "Dental App Server"
+6. Click **Generate**
+7. Copy the 16-character password (without spaces) and use it as `SMTP_PASSWORD`
+
+### Example:
+
+```bash
+SMTP_USER=dental.clinic.app@gmail.com
+SMTP_PASSWORD=abcdefghijklmnop
+```
+
+### Important Notes:
+
+- **2-Step Verification** must be enabled on your Google account to generate App Passwords
+- The App Password is different from your regular Google password
+- Keep your App Password secure and never commit it to version control
+- You can revoke App Passwords anytime from your Google Account settings

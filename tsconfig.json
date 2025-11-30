@@ -21,7 +21,7 @@
     "paths": {
       "@/*": ["./*"],
       "@/models/*": ["./models/*"],
-      "@/controllers/*": ["./controllers/*"],
+      "@/service/*": ["./service/*.ts"],
       "@/views/*": ["./views/*"],
       "@/utils/*": ["./utils/*"]
     }

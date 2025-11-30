@@ -2,7 +2,7 @@
 // These route handlers use controllers to process requests
 
 import { NextRequest, NextResponse } from "next/server";
-import { ExampleController } from "@/controllers/example.controller";
+import { ExampleController } from "@/service/example.controller";
 
 // GET /api/example
 export async function GET(request: NextRequest) {

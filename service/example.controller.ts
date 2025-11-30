@@ -2,7 +2,7 @@
 // Handle business logic and prepare data for API responses
 
 import { ExampleModel } from "@/models";
-import { ExampleRepository } from "@/repositories/example.repository";
+import { ExampleRepository } from "@/repository/example.repository";
 
 export class ExampleController {
   private static repository = new ExampleRepository();
