@@ -57,3 +57,33 @@ SMTP_PASSWORD=abcdefghijklmnop
 - The App Password is different from your regular Google password
 - Keep your App Password secure and never commit it to version control
 - You can revoke App Passwords anytime from your Google Account settings
+
+## Chatbot Configuration (Google Gemini AI)
+
+Add the following environment variable to your `.env.local` file for the chatbot functionality:
+
+```bash
+GOOGLE_AI_API_KEY=your-google-ai-api-key
+```
+
+### How to get your Google AI API Key:
+
+1. Go to [Google AI Studio](https://aistudio.google.com/)
+2. Sign in with your Google account
+3. Click on **Get API key** in the left sidebar
+4. Click **Create API key** in new project or select an existing project
+5. Copy the generated API key
+6. Add it to your `.env.local` file as `GOOGLE_AI_API_KEY`
+
+### Example:
+
+```bash
+GOOGLE_AI_API_KEY=AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz1234567
+```
+
+### Important Notes:
+
+- The API key is free to use with rate limits
+- Keep your API key secure and never commit it to version control
+- You can manage and revoke API keys from [Google AI Studio](https://aistudio.google.com/)
+- The chatbot uses the Gemini 1.5 Flash model by default
