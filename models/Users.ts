@@ -15,15 +15,16 @@ export interface Users{
 }
 
 export interface UserInfo{
-    id: BigInteger;
+    id?: BigInteger;
     user_id: string;
     name: string;
-    age: number;
-    gender: string;
-    nationality: string;
-    is_deleted: boolean;
-    created_at: Date;
-    updated_at: Date;
-    deleted_at: Date;
+    age?: number;
+    gender?: string;
+    nationality?: string;
+    is_deleted?: boolean;
+    created_at?: Date;
+    updated_at?: Date;
+    deleted_at?: Date;
 
 }
+
