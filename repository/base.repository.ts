@@ -27,6 +27,15 @@ export abstract class BaseRepository<T extends QueryResultRow> {
   }
 
   /**
+   * Find all entities
+   */
+  async findAllASC(): Promise<T[]> {
+    const query = `SELECT * FROM ${this.tableName} ORDER BY created_at ASC`;
+    const result = await executeQuery<T>(query);
+    return result.rows;
+  }
+
+  /**
    * Find entities with conditions
    */
   async findBy(
