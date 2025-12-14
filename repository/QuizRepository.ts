@@ -16,6 +16,14 @@ export class QuizRepository extends BaseRepository<Quiz>{
         return result.rows;
     }
 
+    //get ox question by id
+    async getOxQuestionById(oxQuestionId: number): Promise<OxQuestion | null> {
+        const query = `SELECT oxq.* FROM ox_question oxq
+                        WHERE oxq.id = $1`;
+        const result = await this.executeQuery<OxQuestion>(query, [oxQuestionId]);
+        return result.rows[0] || null;
+    }
+
     //get all multi choice questions by quiz id
     async getMultiChoiceQuestionsByQuizId(quizId: string): Promise<MultiChoiceQuestion[]> {
         const query = `SELECT mcq.* FROM multi_choice_question mcq
@@ -33,5 +41,13 @@ export class QuizRepository extends BaseRepository<Quiz>{
                         ORDER BY co.id ASC`;
         const result = await this.executeQuery<ChoiceOption>(query, [multiChoiceQuestionId]);
         return result.rows;
+    }
+
+    //get multi choice question by id
+    async getMultiChoiceQuestionById(multiChoiceQuestionId: number): Promise<MultiChoiceQuestion | null> {
+        const query = `SELECT mcq.* FROM multi_choice_question mcq
+                        WHERE mcq.id = $1`;
+        const result = await this.executeQuery<MultiChoiceQuestion>(query, [multiChoiceQuestionId]);
+        return result.rows[0] || null;
     }
 }
