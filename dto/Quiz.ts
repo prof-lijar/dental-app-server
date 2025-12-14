@@ -52,6 +52,7 @@ export type UserSubmitResultOxQuestion ={
     is_correct: boolean; //true if selected answer is correct, false if selected answer is incorrect
     selected_answer_ox: boolean; //true O, false X
     correct_answer_ox: boolean; //true O, false X
+    explanation?: string;
 }
 
 export type UserSubmitResultMultiChoiceQuestion ={
@@ -59,4 +60,17 @@ export type UserSubmitResultMultiChoiceQuestion ={
     is_correct: boolean; //true if selected answer is correct, false if selected answer is incorrect
     correct_choice_option_id: number;
     selected_choice_option_id: number;
+    explanation?: string;
+}
+
+export type GameQuizSubmitAnswer = {
+    quizId: string;
+    quizType: "OX" | "MULTI_CHOICE";
+    oxQuestion: UserSubmitOxQuestion;
+    multiChoiceQuestion: UserSubmitMultiChoiceQuestion;
+}
+
+export type GameQuizSubmitAnswerResponse = {
+    oxQuestion: UserSubmitResultOxQuestion | null;
+    multiChoiceQuestion: UserSubmitResultMultiChoiceQuestion | null;
 }

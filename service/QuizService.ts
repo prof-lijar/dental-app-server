@@ -1,6 +1,6 @@
 import { Quiz } from "@/models/Quiz";
 import { QuizRepository } from "@/repository/QuizRepository";
-import { QuizQuestion, UserSubmitQuizAnswer, UserSubmitQuizAnswerResponse, UserSubmitResultOxQuestion } from "@/dto/Quiz";
+import { QuizQuestion, UserSubmitQuizAnswer, UserSubmitQuizAnswerResponse,GameQuizSubmitAnswer,GameQuizSubmitAnswerResponse, UserSubmitResultOxQuestion, UserSubmitResultMultiChoiceQuestion } from "@/dto/Quiz";
 
 
 export class QuizService{
@@ -68,20 +68,22 @@ export class QuizService{
                 is_correct: correctAnswer ? oxQuestion.selected_answer_ox === correctAnswer.is_correct : false,
                 selected_answer_ox: oxQuestion.selected_answer_ox,
                 correct_answer_ox: correctAnswer?.is_correct ?? false,
+                explanation: correctAnswer?.explanation ?? "",
             };
         });
 
-        console.log("uersubmit multi choice questions", userSubmitQuizAnswer.multiChoiceQuestions);
 
         let userSubmitResultMultiChoiceQuestions: UserSubmitQuizAnswerResponse['multiChoiceQuestions'] = [];
 
         if(userSubmitQuizAnswer.multiChoiceQuestions.length > 0){
             //get multi choice question with choice options
             const multiChoiceQuestionsWithCorrectChoiceOptions = await Promise.all(userSubmitQuizAnswer.multiChoiceQuestions.map(async (multiChoiceQuestion) => {
+                const multiChoiceQuestionWithCorrectAnswer = await this.repository.getMultiChoiceQuestionById(multiChoiceQuestion.multi_choice_question_id);
                 const choiceOptions = await this.repository.getChoiceOptionsByMultiChoiceQuestionId(multiChoiceQuestion.multi_choice_question_id);
                 return {
                     ...multiChoiceQuestion,
                     choiceOptions: choiceOptions,
+                    explanation: multiChoiceQuestionWithCorrectAnswer?.explanation ?? "",
                 }
             }));
 
@@ -104,6 +106,7 @@ export class QuizService{
                 selected_choice_option_id: multiChoiceQuestion.selected_choice_option_id,
                 is_correct: selectedOption?.is_answer ?? false,
                 correct_choice_option_id: correctOption?.id ?? 0,
+                explanation: questionWithOptions?.explanation ?? "",
             };
         });
             
@@ -119,5 +122,64 @@ export class QuizService{
         };
     }
 
+    //check game quiz
+    static async checkGameQuiz(gameQuizSubmitAnswer: GameQuizSubmitAnswer): Promise<GameQuizSubmitAnswerResponse> {
 
+        if(gameQuizSubmitAnswer.quizType === "OX"){
+
+            //get all ox questions by quiz id
+        const oxQuestionWithCorrectAnswer = await this.repository.getOxQuestionById(gameQuizSubmitAnswer.oxQuestion.ox_question_id);
+
+        //check user submit ox questions
+        const correctAnswer = oxQuestionWithCorrectAnswer?.is_correct ?? false;
+        const userAnswer = gameQuizSubmitAnswer.oxQuestion.selected_answer_ox;
+        const isCorrect = correctAnswer === userAnswer;
+        
+        const userSubmitResultOxQuestion: UserSubmitResultOxQuestion = {
+            ox_question_id: gameQuizSubmitAnswer.oxQuestion.ox_question_id,
+            is_correct: isCorrect,
+            selected_answer_ox: userAnswer,
+            correct_answer_ox: correctAnswer,
+            explanation: oxQuestionWithCorrectAnswer?.explanation ?? "",
+        };
+
+        return {
+            oxQuestion: userSubmitResultOxQuestion,
+            multiChoiceQuestion: null,
+        };
+        }
+
+        if(gameQuizSubmitAnswer.quizType === "MULTI_CHOICE"){
+
+            //get multi choice question with choice options
+            const multiChoiceQuestionsWithCorrectChoiceOptions = await this.repository.getChoiceOptionsByMultiChoiceQuestionId(gameQuizSubmitAnswer.multiChoiceQuestion.multi_choice_question_id);
+
+            const multiChoiceQuestion = await this.repository.getMultiChoiceQuestionById(gameQuizSubmitAnswer.multiChoiceQuestion.multi_choice_question_id);
+
+
+            //check user submit multi choice questions
+            const correctChoiceOption = multiChoiceQuestionsWithCorrectChoiceOptions.find(choiceOption => choiceOption.is_answer === true);
+            const correctChoiceOptionId = correctChoiceOption?.id ?? 0;
+            const selectedChoiceOptionId = gameQuizSubmitAnswer.multiChoiceQuestion.selected_choice_option_id;
+            const isCorrect = correctChoiceOptionId == selectedChoiceOptionId;
+
+            
+            const userSubmitResultMultiChoiceQuestion: UserSubmitResultMultiChoiceQuestion = {
+                multi_choice_question_id: gameQuizSubmitAnswer.multiChoiceQuestion.multi_choice_question_id,
+                is_correct: isCorrect,
+                selected_choice_option_id: selectedChoiceOptionId,
+                correct_choice_option_id: correctChoiceOptionId,
+                explanation: multiChoiceQuestion?.explanation ?? "",
+            };
+            return {
+                multiChoiceQuestion: userSubmitResultMultiChoiceQuestion,
+                oxQuestion: null,
+            };
+        }
+
+        return {
+            oxQuestion: null,
+            multiChoiceQuestion: null,
+        }
+    }
 }
