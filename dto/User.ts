@@ -7,10 +7,10 @@ export type CreateUserDto = {
     nationality?: string;
 }
 
-export type UpdateUserDto = {
-    email?: string;
-    password?: string;
-    username?: string;
+export type UpdateUserInfoDto = {
+    id?: BigInteger;
+    user_id: string;
+    name?: string;
     age?: number;
     gender?: string;
     nationality?: string;

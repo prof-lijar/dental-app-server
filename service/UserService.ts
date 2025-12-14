@@ -1,4 +1,4 @@
-import { CreateUserDto } from "@/dto/User";
+import { CreateUserDto, UpdateUserInfoDto } from "@/dto/User";
 import {Users, UserInfo} from "@/models/Users";
 import {UserRepository} from "@/repository/UserRepository";
 import { generatePasswordHash, isPasswordStrong } from "@/utils/common";
@@ -41,7 +41,33 @@ export class UserService{
             password: hashedPassword,
         }; 
         const newUser = await this.repository.create(user);
+
+        //create user info
+        const userInfo: UserInfo = {
+            user_id: newUser.id ?? "",
+            name: newUser.username,
+            age: createUserDto.age,
+            gender: createUserDto.gender,
+            nationality: createUserDto.nationality,
+        };
+        await this.repository.createUserInfo(userInfo);
+
         return { success: true, message: "User created successfully", user: newUser };
     }
+
+    //get user info by user id
+    static async getUserInfoByUserId(user_id: string): Promise<UserInfo | null> {
+        return await this.repository.getUserInfoByUserId(user_id);
+    }
+
+    //update user info
+    static async updateUserInfo(updateUserInfoDto: UpdateUserInfoDto): Promise<{ success: boolean; message: string; userInfo: UserInfo | null }>{
+        const userInfo = await this.repository.updateUserInfo(updateUserInfoDto);
+        if (!userInfo) {
+            return { success: false, message: "Failed to update user info", userInfo: null };
+        }
+        return { success: true, message: "User info updated successfully", userInfo: userInfo };
+    }
+
 
 }
