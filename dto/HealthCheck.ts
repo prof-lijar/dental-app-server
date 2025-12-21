@@ -1,3 +1,5 @@
+import { PaginationRequestDto, PaginationResponseDto } from "./Common";
+
 export type HealthCheckSubmitDto = {
     sectionA:CheckQuestion[];
     sectionB:CheckQuestion[];
@@ -25,4 +27,11 @@ export type HealthCheckResponseDto = {
     task: string[];
     created_at?: Date;
     updated_at?: Date;
+}
+
+export type HealthCheckHistoryRequestDto = PaginationRequestDto & {
+    userId: string;
+}
+
+export type HealthCheckHistoryResponseDto = PaginationResponseDto<HealthCheckResponseDto> & {
 }

@@ -1,7 +1,7 @@
 import { HealthCheckRepository } from "@/repository/HealCheckRepository";
 import { HealthCheckReportRepository } from "@/repository/HealthCheckReportRepository";
 import {  HealthCheckReport } from "@/models/DentalHealthCheckResult";
-import { HealthCheckSubmitDto, HealthCheckResponseDto } from "@/dto/HealthCheck";
+import { HealthCheckSubmitDto, HealthCheckResponseDto, HealthCheckHistoryRequestDto, HealthCheckHistoryResponseDto } from "@/dto/HealthCheck";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
@@ -307,6 +307,67 @@ ${userAnswers}
         } catch (error: any) {
             console.error("Error getting latest health check result:", error);
             throw new Error(`Failed to get latest health check result: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get health check history for a user with pagination
+     */
+    static async getHealthCheckHistory(request: HealthCheckHistoryRequestDto): Promise<HealthCheckHistoryResponseDto> {
+        try {
+            const { page = 1, size = 10, userId } = request;
+            
+            // Get paginated health check results
+            const repositoryResult = await this.repository.findByUserId(userId, page, size);
+            
+            // Reconstruct full DTOs for each result
+            const items: HealthCheckResponseDto[] = await Promise.all(
+                repositoryResult.data.map(async (result) => {
+                    if (!result.id) {
+                        throw new Error("Health check result missing ID");
+                    }
+
+                    // Fetch reports (toDo, recommend, task) for this health check result
+                    const reports = await this.reportRepository.findByCheckResultId(result.id);
+
+                    // Separate reports by type
+                    const toDo: string[] = [];
+                    const recommend: string[] = [];
+                    const task: string[] = [];
+
+                    reports.forEach((report) => {
+                        if (report.report_type === "TODO") {
+                            toDo.push(report.report);
+                        } else if (report.report_type === "RECOMMEND") {
+                            recommend.push(report.report);
+                        } else if (report.report_type === "TASK") {
+                            task.push(report.report);
+                        }
+                    });
+
+                    // Reconstruct the full DTO
+                    return {
+                        evaluationResult: result.result || "",
+                        myStatus: result.my_status || "",
+                        score: result.health_score || 0,
+                        toDo: toDo,
+                        recommend: recommend,
+                        task: task,
+                        created_at: result.created_at,
+                        updated_at: result.updated_at,
+                    };
+                })
+            );
+
+            return {
+                items: items,
+                totalItems: repositoryResult.total,
+                page: page,
+                size: size,
+            };
+        } catch (error: any) {
+            console.error("Error getting health check history:", error);
+            throw new Error(`Failed to get health check history: ${error.message}`);
         }
     }
 }
