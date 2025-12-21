@@ -1,6 +1,6 @@
 import { HealthCheckRepository } from "@/repository/HealCheckRepository";
 import { HealthCheckResult, HealthCheckReport } from "@/models/DentalHealthCheckResult";
-import { HealthCheckSubmitDto } from "@/dto/HealthCheck";
+import { HealthCheckSubmitDto, HealthCheckResponseDto } from "@/dto/HealthCheck";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
@@ -109,11 +109,55 @@ export class DentalHealthCheckService {
     }
 
     /**
+     * Parse JSON response from LLM, handling markdown code blocks if present
+     */
+    private static parseJsonResponse(response: string): HealthCheckResponseDto {
+        try {
+            // Remove markdown code blocks if present
+            let cleanedResponse = response.trim();
+            
+            // Remove ```json or ``` markers
+            cleanedResponse = cleanedResponse.replace(/^```json\s*/i, '');
+            cleanedResponse = cleanedResponse.replace(/^```\s*/i, '');
+            cleanedResponse = cleanedResponse.replace(/\s*```$/i, '');
+            cleanedResponse = cleanedResponse.trim();
+
+            // Parse JSON
+            const parsed = JSON.parse(cleanedResponse) as HealthCheckResponseDto;
+
+            // Validate required fields
+            if (!parsed.evaluationResult || typeof parsed.evaluationResult !== 'string') {
+                throw new Error("Missing or invalid evaluationResult field");
+            }
+            if (!parsed.myStatus || typeof parsed.myStatus !== 'string') {
+                throw new Error("Missing or invalid myStatus field");
+            }
+            if (typeof parsed.score !== 'number' || parsed.score < 0 || parsed.score > 100) {
+                throw new Error("Missing or invalid score field (must be 0-100)");
+            }
+            if (!Array.isArray(parsed.toDo)) {
+                throw new Error("Missing or invalid toDo field (must be array)");
+            }
+            if (!Array.isArray(parsed.recommend)) {
+                throw new Error("Missing or invalid recommend field (must be array)");
+            }
+            if (!Array.isArray(parsed.task)) {
+                throw new Error("Missing or invalid task field (must be array)");
+            }
+
+            return parsed;
+        } catch (error: any) {
+            console.error("JSON parsing error:", error);
+            throw new Error(`Failed to parse JSON response: ${error.message}`);
+        }
+    }
+
+    /**
      * Evaluate health check answers using Gemini API
      */
     static async evaluateHealthCheck(
         data: HealthCheckSubmitDto
-    ): Promise<{ success: boolean; result: string; error?: string }> {
+    ): Promise<{ success: boolean; result?: HealthCheckResponseDto; error?: string }> {
         try {
             // Initialize model if not already done
             const model = this.initializeModel();
@@ -126,13 +170,13 @@ export class DentalHealthCheckService {
 
 ${userAnswers}
 
-위의 사용자 답변을 바탕으로 위의 규칙에 따라 구강 건강 평가 결과를 생성해주세요.`;
+위의 사용자 답변을 바탕으로 위의 규칙에 따라 구강 건강 평가 결과를 JSON 형식으로 생성해주세요. 반드시 유효한 JSON 형식으로만 응답해주세요.`;
 
             // Create prompt template
             const prompt = ChatPromptTemplate.fromMessages([
                 [
                     "system",
-                    "You are a professional dental health assistant. Analyze the user's oral health check answers and provide a comprehensive evaluation following the provided guidelines.",
+                    "You are a professional dental health assistant. Analyze the user's oral health check answers and provide a comprehensive evaluation in JSON format following the provided guidelines. Respond ONLY with valid JSON, no additional text or explanation.",
                 ],
                 ["human", "{input}"],
             ]);
@@ -145,19 +189,21 @@ ${userAnswers}
             ]);
 
             // Invoke the chain
-            const evaluationResult = await chain.invoke({
+            const rawResponse = await chain.invoke({
                 input: fullPrompt,
             });
 
+            // Parse JSON response
+            const structuredResult = this.parseJsonResponse(rawResponse);
+
             return {
                 success: true,
-                result: evaluationResult,
+                result: structuredResult,
             };
         } catch (error: any) {
             console.error("HealthCheck evaluation error:", error);
             return {
                 success: false,
-                result: "",
                 error: error.message || "An error occurred while evaluating health check",
             };
         }

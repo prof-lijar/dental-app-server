@@ -15,3 +15,12 @@ type CheckQuestion = {
 type AnswerOption = {
     option: string;
 }
+
+export type HealthCheckResponseDto = {
+    evaluationResult: string;
+    myStatus: string;
+    score: number; // 0-100, where 100 is full score
+    toDo: string[];
+    recommend: string[];
+    task: string[];
+}

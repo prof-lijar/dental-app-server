@@ -118,10 +118,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Return structured response
         return NextResponse.json(
             { 
                 success: true, 
-                result: result.result 
+                ...result.result
             },
             { status: 200 }
         );
