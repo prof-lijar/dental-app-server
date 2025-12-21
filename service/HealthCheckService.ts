@@ -1,5 +1,6 @@
 import { HealthCheckRepository } from "@/repository/HealCheckRepository";
-import { HealthCheckResult, HealthCheckReport } from "@/models/DentalHealthCheckResult";
+import { HealthCheckReportRepository } from "@/repository/HealthCheckReportRepository";
+import {  HealthCheckReport } from "@/models/DentalHealthCheckResult";
 import { HealthCheckSubmitDto, HealthCheckResponseDto } from "@/dto/HealthCheck";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
@@ -9,6 +10,7 @@ import { DENTAL_HEALTH_CHECK_PROMPT } from "@/utils/prompt";
 
 export class DentalHealthCheckService {
     private static repository = new HealthCheckRepository();
+    private static reportRepository = new HealthCheckReportRepository();
     private static model: ChatGoogleGenerativeAI;
 
     /**
@@ -156,6 +158,7 @@ export class DentalHealthCheckService {
      * Evaluate health check answers using Gemini API
      */
     static async evaluateHealthCheck(
+        userId: string,
         data: HealthCheckSubmitDto
     ): Promise<{ success: boolean; result?: HealthCheckResponseDto; error?: string }> {
         try {
@@ -195,6 +198,57 @@ ${userAnswers}
 
             // Parse JSON response
             const structuredResult = this.parseJsonResponse(rawResponse);
+
+            // Store result in database
+            const resultToStore = {
+                user_id: userId,
+                result: structuredResult.evaluationResult, // Store full JSON response as text
+                my_status: structuredResult.myStatus,
+                health_score: structuredResult.score,
+                is_deleted: false,
+            };
+
+            const createdResult = await this.repository.create(resultToStore);
+
+            // Store reports (toDo, recommend, task) as separate records
+            if (!createdResult.id) {
+                throw new Error("Failed to get created health check result ID");
+            }
+
+            const checkResultId = createdResult.id;
+
+            // Store toDo items
+            for (const todo of structuredResult.toDo) {
+                const reportToStore: Partial<HealthCheckReport> = {
+                    check_result_id: checkResultId,
+                    report: todo.length > 100 ? todo.substring(0, 100) : todo, // Truncate to 100 chars if needed
+                    report_type: "TODO",
+                    is_deleted: false,
+                };
+                await this.reportRepository.create(reportToStore);
+            }
+
+            // Store recommend items
+            for (const recommend of structuredResult.recommend) {
+                const reportToStore: Partial<HealthCheckReport> = {
+                    check_result_id: checkResultId,
+                    report: recommend.length > 100 ? recommend.substring(0, 100) : recommend, // Truncate to 100 chars if needed
+                    report_type: "RECOMMEND",
+                    is_deleted: false,
+                };
+                await this.reportRepository.create(reportToStore);
+            }
+
+            // Store task items
+            for (const task of structuredResult.task) {
+                const reportToStore: Partial<HealthCheckReport> = {
+                    check_result_id: checkResultId,
+                    report: task.length > 100 ? task.substring(0, 100) : task, // Truncate to 100 chars if needed
+                    report_type: "TASK",
+                    is_deleted: false,
+                };
+                await this.reportRepository.create(reportToStore);
+            }
 
             return {
                 success: true,

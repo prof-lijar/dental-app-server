@@ -24,3 +24,10 @@ export type LoggedInUser = {
     sessionId: string;
     refreshToken: string;
 }
+
+export type AuthUser = {
+    userId: string;
+    email: string;
+    userName: string;
+    sessionId: string;
+}
