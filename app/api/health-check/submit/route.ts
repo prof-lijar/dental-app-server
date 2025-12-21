@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DentalHealthCheckService } from "@/service/HealthCheckService";
 import { HealthCheckSubmitDto } from "@/dto/HealthCheck";
+import { validateJWTToken } from "@/utils/common";
 
 // POST /api/health-check/submit
 export async function POST(request: NextRequest) {
     try {
+
+        // Validate JWT token
+        const authUser = await validateJWTToken(request.headers.get("Authorization")?.split(" ")[1] || "");
+        if (!authUser) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const body = await request.json();
 
         // Validate required sections
@@ -109,7 +117,7 @@ export async function POST(request: NextRequest) {
         };
 
         // Evaluate health check
-        const result = await DentalHealthCheckService.evaluateHealthCheck(healthCheckData);
+        const result = await DentalHealthCheckService.evaluateHealthCheck(authUser.userId, healthCheckData);
 
         if (!result.success) {
             return NextResponse.json(
@@ -118,10 +126,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Return structured response
         return NextResponse.json(
             { 
                 success: true, 
-                result: result.result 
+                ...result.result
             },
             { status: 200 }
         );
