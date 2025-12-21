@@ -1,5 +1,4 @@
 import { ReportType } from "@/dto/Enum";
-
 export interface HealthCheckResult {
     id?: number;
     user_id: string;

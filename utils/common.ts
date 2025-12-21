@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import { UserRepository } from '@/repository/UserRepository';
+import { AuthUser } from '@/dto/User';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || '';
@@ -41,6 +43,40 @@ export function verifyRefreshToken(token: string): TokenPayload | null {
     } catch {
         return null;
     }
+}
+
+export async function validateJWTToken(accessToken: string): Promise<AuthUser | null> {
+    // Verify the JWT token
+    const payload = verifyAccessToken(accessToken);
+    if (!payload) {
+        return null;
+    }
+
+    // Get user from database to retrieve sessionId and validate token
+    const userRepository = new UserRepository();
+    const user = await userRepository.findById(payload.userId);
+    
+    if (!user) {
+        return null;
+    }
+
+    // Validate that the access token matches what's stored in the database
+    if (user.access_token !== accessToken) {
+        return null;
+    }
+
+    // Check if user is deleted
+    if (user.is_deleted) {
+        return null;
+    }
+
+    // Return AuthUser if all validations pass
+    return {
+        userId: payload.userId,
+        email: payload.email,
+        userName: payload.userName,
+        sessionId: user.session_id || '',
+    };
 }
 
 
