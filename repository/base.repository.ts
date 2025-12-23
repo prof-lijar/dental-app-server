@@ -103,7 +103,7 @@ export abstract class BaseRepository<T extends QueryResultRow> {
 
     const query = `
       UPDATE ${this.tableName}
-      SET ${setClause}, updated_at = NOW()
+      SET ${setClause}
       WHERE ${this.primaryKey} = $${values.length + 1}
       RETURNING *
     `;
