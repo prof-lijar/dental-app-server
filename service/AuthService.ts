@@ -2,7 +2,7 @@ import {UserRepository} from "@/repository/UserRepository";
 import { generateAccessToken, generatePasswordHash, generateRefreshToken, generateSessionId, generateVerificationCode, isPasswordStrong, verifyPassword } from "@/utils/common";
 import { EmailService } from "@/service/EmailService";
 import { VerificationRepository } from "@/repository/VerificationRepository";
-import { VerificationCodeType } from "@/dto/Enum";
+import { UserRole, VerificationCodeType } from "@/dto/Enum";
 import { LoggedInUser } from "@/dto/User";
 
 export class AuthService{
@@ -101,7 +101,12 @@ export class AuthService{
 
     static async login(email: string, password: string): Promise<{ success: boolean; message: string; user: LoggedInUser | null }>{
         //check if user exists
-        const user = await this.userRepository.findByEmail(email);
+        let user = await this.userRepository.findByEmail(email);
+        
+        //also look for username
+        if (!user) {
+            user = await this.userRepository.findByUsername(email);
+        }
         if (!user) {
             return { success: false, message: "User not found", user: null };
         }
@@ -110,8 +115,8 @@ export class AuthService{
             return { success: false, message: "Invalid password", user: null };
         }
         //generate access token and refresh token
-        const accessToken = generateAccessToken(user.id!, user.email, user.username);
-        const refreshToken = generateRefreshToken(user.id!, user.email, user.username);
+        const accessToken = generateAccessToken(user.id!, user.email || "", user.username, user.role || "");
+        const refreshToken = generateRefreshToken(user.id!, user.email || "", user.username, user.role || "");
         const sessionId = generateSessionId();
 
         //update user with access token and refresh token
@@ -123,11 +128,12 @@ export class AuthService{
 
         return { success: true, message: "Login successful", user: {
             userId: user.id!,
-            email: user.email,
+            email: user.email || "",
             username: user.username,
             accessToken: accessToken,
             sessionId: sessionId,
             refreshToken: refreshToken,
+            role: user.role as UserRole,
         } };
     }
 
