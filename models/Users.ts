@@ -2,8 +2,9 @@
 export interface Users{
     id?: string;
     username: string;
-    email: string;
+    email?: string;
     password: string;
+    role?: string;
     access_token?: string;
     refresh_token?: string;
     session_id?: string;
