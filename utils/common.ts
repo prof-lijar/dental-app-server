@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { UserRepository } from '@/repository/UserRepository';
 import { AuthUser } from '@/dto/User';
+import { UserRole } from '@/dto/Enum';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || '';
@@ -11,6 +12,7 @@ export interface TokenPayload {
     userId: string;
     email: string;
     userName: string;
+    role: string;
 }
 
 export function generateVerificationCode(): string {
@@ -19,13 +21,13 @@ export function generateVerificationCode(): string {
     return verificationCode;
 }
 
-export function generateAccessToken(userId: string, email: string, userName: string): string {
-    const payload: TokenPayload = { userId, email, userName };
+export function generateAccessToken(userId: string, email: string, userName: string, role: string): string {
+    const payload: TokenPayload = { userId, email, userName, role };
     return jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
 }
 
-export function generateRefreshToken(userId: string, email: string, userName: string): string {
-    const payload: TokenPayload = { userId, email, userName };
+export function generateRefreshToken(userId: string, email: string, userName: string, role: string): string {
+    const payload: TokenPayload = { userId, email, userName, role };
     return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' });
 }
 
@@ -75,6 +77,7 @@ export async function validateJWTToken(accessToken: string): Promise<AuthUser | 
         userId: payload.userId,
         email: payload.email,
         userName: payload.userName,
+        role: payload.role as UserRole,
         sessionId: user.session_id || '',
     };
 }

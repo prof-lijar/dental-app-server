@@ -1,3 +1,5 @@
+import { UserRole } from "./Enum";
+
 export type CreateUserDto = {
     email: string;
     password: string;
@@ -23,11 +25,14 @@ export type LoggedInUser = {
     accessToken: string;
     sessionId: string;
     refreshToken: string;
+    role: UserRole;
 }
 
 export type AuthUser = {
     userId: string;
     email: string;
     userName: string;
+    role: UserRole;
     sessionId: string;
 }
+

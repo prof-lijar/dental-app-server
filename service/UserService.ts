@@ -1,10 +1,13 @@
 import { CreateUserDto, UpdateUserInfoDto } from "@/dto/User";
 import {Users, UserInfo} from "@/models/Users";
 import {UserRepository} from "@/repository/UserRepository";
+import { ParentChildRepository } from "@/repository/ParentChildRepository";
 import { generatePasswordHash, isPasswordStrong } from "@/utils/common";
+import { UserRole } from "@/dto/Enum";
 
 export class UserService{
     private static repository = new UserRepository();
+    private static parentChildRepository = new ParentChildRepository();
 
     static async getUser(id: string): Promise<Users | null> {
         return await this.repository.findById(id);
@@ -67,6 +70,48 @@ export class UserService{
             return { success: false, message: "Failed to update user info", userInfo: null };
         }
         return { success: true, message: "User info updated successfully", userInfo: userInfo };
+    }
+
+    //create child account
+    static async createChildAccount(
+        parentUserId: string,
+        username: string,
+        password: string
+    ): Promise<{ success: boolean; message: string; code: number }> {
+        //check if username already exists
+        const existingUsername = await this.repository.findByUsername(username);
+        if (existingUsername) {
+            return { success: false, message: "Username already taken", code: 400 };
+        }
+
+        //check if password is strong
+        if (!isPasswordStrong(password)) {
+            return { 
+                success: false, 
+                message: "Password must be at least 8 characters long and contain at least 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character",
+                code: 400
+            };
+        }
+
+        //hash password
+        const hashedPassword = generatePasswordHash(password);
+
+        //create child user
+        const childUser: Users = {
+            username,
+            password: hashedPassword,
+            role: UserRole.CHILD,
+        };
+
+        const newChildUser = await this.repository.create(childUser);
+
+        //create parent-child map
+        await this.parentChildRepository.create({
+            parent_id: parentUserId,
+            child_id: newChildUser.id ?? "",
+        });
+
+        return { success: true, message: "Child account created successfully", code: 201 };
     }
 
 
