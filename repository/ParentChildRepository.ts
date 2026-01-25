@@ -26,4 +26,15 @@ export class ParentChildRepository extends BaseRepository<ParentChildMap> {
         const result = await this.executeQuery<ParentChildMap>(query, [childId]);
         return result.rows;
     }
+
+    // verify parent-child relationship exists
+    async findByParentAndChildId(parentId: string, childId: string): Promise<ParentChildMap | null> {
+        const query = `
+            SELECT * FROM ${this.tableName}
+            WHERE parent_id = $1 AND child_id = $2
+            LIMIT 1
+        `;
+        const result = await this.executeQuery<ParentChildMap>(query, [parentId, childId]);
+        return result.rows[0] || null;
+    }
 }

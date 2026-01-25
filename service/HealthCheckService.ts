@@ -1,5 +1,6 @@
 import { HealthCheckRepository } from "@/repository/HealCheckRepository";
 import { HealthCheckReportRepository } from "@/repository/HealthCheckReportRepository";
+import { ParentChildRepository } from "@/repository/ParentChildRepository";
 import {  HealthCheckReport } from "@/models/DentalHealthCheckResult";
 import { HealthCheckSubmitDto, HealthCheckResponseDto, HealthCheckHistoryRequestDto, HealthCheckHistoryResponseDto } from "@/dto/HealthCheck";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
@@ -11,6 +12,7 @@ import { DENTAL_HEALTH_CHECK_PROMPT } from "@/utils/prompt";
 export class DentalHealthCheckService {
     private static repository = new HealthCheckRepository();
     private static reportRepository = new HealthCheckReportRepository();
+    private static parentChildRepository = new ParentChildRepository();
     private static model: ChatGoogleGenerativeAI;
 
     /**
@@ -368,6 +370,120 @@ ${userAnswers}
         } catch (error: any) {
             console.error("Error getting health check history:", error);
             throw new Error(`Failed to get health check history: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get the latest health check result for a child (parent must be verified)
+     */
+    static async getChildHealthCheckResult(
+        parentId: string,
+        childId: string
+    ): Promise<HealthCheckResponseDto | null> {
+        try {
+            // Verify parent-child relationship
+            const relationship = await this.parentChildRepository.findByParentAndChildId(parentId, childId);
+            if (!relationship) {
+                throw new Error("Parent-child relationship not found or unauthorized");
+            }
+
+            // Get latest health check result for the child
+            const result = await this.repository.findLatestByUserId(childId);
+            if (!result || !result.id) {
+                return null;
+            }
+
+            // Fetch reports (toDo, recommend, task) for this health check result
+            const reports = await this.reportRepository.findByCheckResultId(result.id);
+
+            // Separate reports by type
+            const toDo: string[] = [];
+            const recommend: string[] = [];
+            const task: string[] = [];
+
+            reports.forEach((report) => {
+                if (report.report_type === "TODO") {
+                    toDo.push(report.report);
+                } else if (report.report_type === "RECOMMEND") {
+                    recommend.push(report.report);
+                } else if (report.report_type === "TASK") {
+                    task.push(report.report);
+                }
+            });
+
+            // Reconstruct the full DTO
+            const response: HealthCheckResponseDto = {
+                evaluationResult: result.result || "",
+                myStatus: result.my_status || "",
+                score: result.health_score || 0,
+                toDo: toDo,
+                recommend: recommend,
+                task: task,
+                created_at: result.created_at,
+                updated_at: result.updated_at,
+            };
+
+            return response;
+        } catch (error: any) {
+            console.error("Error getting child health check result:", error);
+            throw new Error(`Failed to get child health check result: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get the latest health check report for a child (parent must be verified)
+     */
+    static async getChildLatestHealthReport(
+        parentId: string,
+        childId: string
+    ): Promise<HealthCheckResponseDto | null> {
+        try {
+            // Verify parent-child relationship
+            const relationship = await this.parentChildRepository.findByParentAndChildId(parentId, childId);
+            if (!relationship) {
+                throw new Error("Parent-child relationship not found or unauthorized");
+            }
+
+            // Get latest health check result for the child
+            const result = await this.repository.findLatestByUserId(childId);
+            if (!result || !result.id) {
+                return null;
+            }
+
+            // Fetch reports (toDo, recommend, task) for this health check result
+            const reports = await this.reportRepository.findByCheckResultId(result.id);
+
+            // Separate reports by type
+            const toDo: string[] = [];
+            const recommend: string[] = [];
+            const task: string[] = [];
+
+            reports.forEach((report) => {
+                if (report.report_type === "TODO") {
+                    toDo.push(report.report);
+                } else if (report.report_type === "RECOMMEND") {
+                    recommend.push(report.report);
+                } else if (report.report_type === "TASK") {
+                    task.push(report.report);
+                }
+            });
+
+            // Reconstruct the full DTO
+            const response: HealthCheckResponseDto = {
+                evaluationResult: result.result || "",
+                myStatus: result.my_status || "",
+                score: result.health_score || 0,
+                toDo: toDo,
+                recommend: recommend,
+                task: task,
+                created_at: result.created_at,
+                updated_at: result.updated_at,
+            };
+
+            return response;
+        } catch (error: any) {
+            console.error("Error getting child latest health report:", error);
+            throw new Error(`Failed to get child latest health report: ${error.message}`);
         }
     }
 }
