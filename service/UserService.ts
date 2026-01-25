@@ -114,5 +114,28 @@ export class UserService{
         return { success: true, message: "Child account created successfully", code: 201 };
     }
 
+    //get my children
+    static async getMyChildren(parentId: string): Promise<Array<{ childId: string; username: string; createdAt: Date }>> {
+        // Get all children by parent id
+        const parentChildMaps = await this.parentChildRepository.findByParentId(parentId);
+        
+        // Get user info for each child
+        const children = await Promise.all(
+            parentChildMaps.map(async (map) => {
+                const childUser = await this.repository.findById(map.child_id);
+                if (!childUser) {
+                    return null;
+                }
+                return {
+                    childId: childUser.id!,
+                    username: childUser.username,
+                    createdAt: map.created_at || childUser.created_at || new Date(),
+                };
+            })
+        );
+
+        // Filter out null values (in case a child user was deleted)
+        return children.filter((child): child is { childId: string; username: string; createdAt: Date } => child !== null);
+    }
 
 }
